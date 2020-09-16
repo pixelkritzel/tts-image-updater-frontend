@@ -1,26 +1,24 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import * as React from 'react';
+import { observer } from 'mobx-react';
+import { observable } from 'mobx';
+import { storeModel } from 'store/storeModel';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import { Layout } from 'components/Layout';
+import { Router } from 'components/Router';
+import { StoreContext } from 'components/StoreContext';
+
+@observer
+export default class App extends React.Component {
+  @observable
+  store = storeModel.create({ ui: { username: 'user9' } });
+
+  render() {
+    return (
+      <StoreContext.Provider value={this.store}>
+        <Layout>
+          <Router />
+        </Layout>
+      </StoreContext.Provider>
+    );
+  }
 }
-
-export default App;
