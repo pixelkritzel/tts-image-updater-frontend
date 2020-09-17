@@ -61,11 +61,11 @@ export const imageSetModel = types
     },
   }))
   .actions((self) => ({
-    addImage: flow(function* (imageData: FormData) {
+    addImages: flow(function* (imagesData: FormData) {
       const { name } = getParent(self, 2);
       const response: axiosResponse<any> = yield axios.postImage(
         `users/${name}/image-sets/${self.id}/images`,
-        imageData
+        imagesData
       );
       if (response.type === 'SUCCESS') {
         applySnapshot(self, response.data);

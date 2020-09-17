@@ -1,4 +1,5 @@
 import { flow, Instance, SnapshotIn, types } from 'mobx-state-tree';
+
 import { axios } from 'utils/axios';
 
 import { axiosResponse } from 'utils/axios';
@@ -25,6 +26,7 @@ export const storeModel = types
   }))
   .actions((self) => ({
     afterCreate() {
+      axios.setSpinner = (showSpinner: boolean) => self.ui.set('showSpinner', showSpinner);
       if (self.ui.username) {
         self.loadUser();
       }

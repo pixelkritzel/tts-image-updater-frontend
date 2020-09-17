@@ -1,4 +1,4 @@
-import { cast, SnapshotIn, types } from 'mobx-state-tree';
+import { cast, Instance, SnapshotIn, types } from 'mobx-state-tree';
 
 export const uiModel = types
   .model('ui', {
@@ -6,6 +6,7 @@ export const uiModel = types
     isUserLoaded: false,
     sessionToken: types.maybe(types.string),
     username: types.maybe(types.string),
+    showSpinner: false,
   })
   .actions((self) => ({
     set<K extends keyof SnapshotIn<typeof self>, T extends SnapshotIn<typeof self>>(
@@ -15,3 +16,5 @@ export const uiModel = types
       self[key] = cast(value);
     },
   }));
+
+export interface Iui extends Instance<typeof uiModel> {}
