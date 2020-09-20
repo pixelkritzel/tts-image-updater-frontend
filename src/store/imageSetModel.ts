@@ -13,11 +13,24 @@ import {
 import { Istore } from './storeModel';
 import { flow } from 'mobx';
 
-const imageModel = types.model({
-  id: types.identifier,
-  url: types.string,
-  name: types.optional(types.string, ''),
-});
+const imageModel = types
+  .model({
+    id: types.identifier,
+    url: types.string,
+    name: types.optional(types.string, ''),
+  })
+  .views((self) => ({
+    get isSelected() {
+      const imageSet = getParent(self, 2) as { selectedImage: { id: string } };
+      return imageSet.selectedImage.id === self.id;
+    },
+  }))
+  .actions((self) => ({
+    delete() {
+      const imageSet = getParent(self, 2) as IimageSet;
+      imageSet.deleteImage(self.id);
+    },
+  }));
 
 export type Iimage = Instance<typeof imageModel>;
 export type SIimageModel = SnapshotIn<typeof imageModel>;
@@ -71,6 +84,9 @@ export const imageSetModel = types
         applySnapshot(self, response.data);
       }
     }),
+    deleteImage(id: Iimage['id']) {
+      self.images.delete(id);
+    },
 
     setSelectedImage(image: Iimage) {
       self.selectedImageId = image.id;

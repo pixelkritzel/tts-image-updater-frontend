@@ -1,8 +1,8 @@
 import React from 'react';
 import { observable, reaction } from 'mobx';
-import { observer } from 'mobx-react';
+import { Observer, observer } from 'mobx-react';
 import { RouteComponentProps } from 'react-router-dom';
-import { Button, styled } from '@material-ui/core';
+import { styled } from '@material-ui/core';
 
 import { StoreContext } from 'components/StoreContext';
 
@@ -10,6 +10,7 @@ import { IimageSet } from 'store/imageSetModel';
 import { ResponsiveImage } from 'components/ResponsiveImage';
 import { FileDropZone } from 'components/FileDropZone';
 import { DropZoneUi } from 'components/DropZoneUi';
+import { ImagePreview } from './ImagePreview';
 
 interface ImageSetProps extends RouteComponentProps<{ imageSetId: string }> {}
 
@@ -28,6 +29,20 @@ const Main = styled('div')({
 const SideBar = styled('div')({
   alignSelf: 'stretch',
   overflowY: 'scroll',
+  '& > *': {
+    position: 'relative',
+    paddingBottom: '12px',
+
+    '&:after': {
+      content: '""',
+      position: 'absolute',
+      left: '5%',
+      bottom: '6px',
+      width: '90%',
+      height: '1px',
+      backgroundColor: 'lightgrey',
+    },
+  },
 });
 
 const StyledFileDropZone = styled(FileDropZone)({
@@ -80,19 +95,29 @@ export class ImageSet extends React.Component<ImageSetProps> {
 
     return (
       <Container>
-        <Main>
-          {/* <Input type="file" onChange={this.onFileChange} /> */}
-          <StyledFileDropZone DropZoneUI={DropZoneUi} onFilesDropped={this.onFilesDropped}>
-            <ResponsiveImage src={this.imageSet.selectedImage.url} />
-          </StyledFileDropZone>
-        </Main>
-        <SideBar>
-          {this.imageSet.imagesAsArray.map((image) => (
-            <Button key={image.id} onClick={() => this.imageSet?.setSelectedImage(image)}>
-              <ResponsiveImage src={image.url} />
-            </Button>
-          ))}
-        </SideBar>
+        <Observer>
+          {() => (
+            <Main>
+              {/* <Input type="file" onChange={this.onFileChange} /> */}
+              <StyledFileDropZone DropZoneUI={DropZoneUi} onFilesDropped={this.onFilesDropped}>
+                <ResponsiveImage src={this.imageSet!.selectedImage.url} />
+              </StyledFileDropZone>
+            </Main>
+          )}
+        </Observer>
+        <Observer>
+          {() => (
+            <SideBar>
+              {this.imageSet!.imagesAsArray.map((image) => (
+                <ImagePreview
+                  key={image.id}
+                  image={image}
+                  setSelectedImage={this.imageSet!.setSelectedImage}
+                />
+              ))}
+            </SideBar>
+          )}
+        </Observer>
       </Container>
     );
   }
