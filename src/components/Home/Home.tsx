@@ -1,17 +1,30 @@
 import React from 'react';
 import { observer } from 'mobx-react';
+import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
+
+import { Fab, Grid, styled } from '@material-ui/core';
+import AddIcon from '@material-ui/icons/Add';
 
 import { StoreContext } from 'components/StoreContext';
 import { ImageSetPreview } from 'components/ImageSetPreview';
-import { Grid } from '@material-ui/core';
-import { Link } from 'react-router-dom';
 
-interface HomeProps {}
+const AddButton = styled(Fab)({
+  position: 'fixed',
+  bottom: '1.5vh',
+  right: '1.5vh',
+});
+
+interface HomeProps extends RouteComponentProps {}
 
 @observer
-export class Home extends React.Component {
+class HomeComponent extends React.Component<HomeProps> {
   static contextType = StoreContext;
   context!: React.ContextType<typeof StoreContext>;
+
+  onNewImageSet = async () => {
+    const imageSetId = await this.context.user!.newImageSet();
+    this.props.history.push(`image-sets/${imageSetId}`);
+  };
 
   render() {
     const { user } = this.context;
@@ -20,7 +33,7 @@ export class Home extends React.Component {
 
     return (
       <>
-        <h1>Hi, {user.name}</h1>
+        <h1>Hi {user.name}!</h1>
         <p>This are your image sets</p>
         <Grid container spacing={3}>
           {user.imageSetsAsArray.map((imageSet) => (
@@ -31,7 +44,12 @@ export class Home extends React.Component {
             </Grid>
           ))}
         </Grid>
+        <AddButton color="primary" variant="extended" onClick={this.onNewImageSet}>
+          <AddIcon /> Add image set
+        </AddButton>
       </>
     );
   }
 }
+
+export const Home = withRouter(HomeComponent);

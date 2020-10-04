@@ -90,34 +90,49 @@ export class ImageSet extends React.Component<ImageSetProps> {
     this.imageSet?.addImages(data);
   };
 
+  DropZone: React.FC = ({ children }) => (
+    <StyledFileDropZone DropZoneUI={DropZoneUi} onFilesDropped={this.onFilesDropped}>
+      {children}
+    </StyledFileDropZone>
+  );
+
   render() {
-    if (!this.imageSet) return null;
+    const { DropZone, imageSet } = this;
+    if (!imageSet) return null;
 
     return (
       <Container>
-        <Observer>
-          {() => (
-            <Main>
-              {/* <Input type="file" onChange={this.onFileChange} /> */}
-              <StyledFileDropZone DropZoneUI={DropZoneUi} onFilesDropped={this.onFilesDropped}>
-                <ResponsiveImage src={this.imageSet!.selectedImage.url} />
-              </StyledFileDropZone>
-            </Main>
-          )}
-        </Observer>
-        <Observer>
-          {() => (
-            <SideBar>
-              {this.imageSet!.imagesAsArray.map((image) => (
-                <ImagePreview
-                  key={image.id}
-                  image={image}
-                  setSelectedImage={this.imageSet!.setSelectedImage}
-                />
-              ))}
-            </SideBar>
-          )}
-        </Observer>
+        {imageSet.imagesAsArray.length ? (
+          <>
+            <Observer>
+              {() => (
+                <Main>
+                  {/* <Input type="file" onChange={this.onFileChange} /> */}
+                  <DropZone>
+                    <ResponsiveImage src={this.imageSet!.selectedImage?.url} />
+                  </DropZone>
+                </Main>
+              )}
+            </Observer>
+            <Observer>
+              {() => (
+                <SideBar>
+                  {this.imageSet!.imagesAsArray.map((image) => (
+                    <ImagePreview
+                      key={image.id}
+                      image={image}
+                      setSelectedImage={this.imageSet!.setSelectedImage}
+                    />
+                  ))}
+                </SideBar>
+              )}
+            </Observer>
+          </>
+        ) : (
+          <DropZone>
+            <div>It appears your image set is empty just drop your images here!</div>
+          </DropZone>
+        )}
       </Container>
     );
   }

@@ -68,7 +68,7 @@ export const imageSetModel = types
         ? self.images.get(self.selectedImageId)
         : self.images.get(self.defaultImageId);
       if (!selectedImage) {
-        throw new Error(`Neither selected nor default image on image set ${self.id}`);
+        return null;
       }
       return selectedImage;
     },

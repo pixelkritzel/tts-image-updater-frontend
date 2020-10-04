@@ -35,7 +35,7 @@ export class ImageSetPreview extends React.Component<ImageSetPreviewProps> {
     const { imageSet } = this.props;
 
     const Image = styled('div')({
-      backgroundImage: `url(${imageSet.selectedImage.url})`,
+      backgroundImage: `url(${imageSet.selectedImage?.url})`,
       backgroundSize: 'cover',
       paddingBottom: '100%',
     });
