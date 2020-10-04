@@ -2,13 +2,13 @@ import { SIimageModel } from './../store/imageSetModel';
 import axiosCore, { AxiosError, AxiosRequestConfig, AxiosResponse, Method } from 'axios';
 
 export type axiosResponse<D extends unknown> =
-  | { type: 'SUCCESS'; data?: D }
+  | { type: 'SUCCESS'; data?: D, headers: AxiosResponse['headers'] }
   | { type: 'ERROR'; message?: string; statusCode?: string };
 
 type axiosReturnTypes = AxiosResponse | AxiosError;
 
 function isAxiosError(returnValue: axiosReturnTypes): returnValue is AxiosError {
-  return 'isAxisError' in returnValue;
+  return 'isAxiosError' in returnValue;
 }
 
 type setSpinnerFn = (setSpinner: boolean) => void;
@@ -35,7 +35,7 @@ class Axios {
     }
     this.setSpinner && this.setSpinner(false);
     if (!isAxiosError(response!)) {
-      return { type: 'SUCCESS', data: response!.data };
+      return { type: 'SUCCESS', data: response!.data, headers: response.headers };
     } else {
       return {
         type: 'ERROR',
@@ -44,6 +44,18 @@ class Axios {
       };
     }
   };
+
+  setSessionToken = (token: string) => {
+    this.axiosInstance.defaults.headers.common['session-token'] = token
+  }
+
+  login = async (username: string, password: string) => {
+    const response = await this.post<{token: string}>('/login', {username, password})
+    if (response.type === 'SUCCESS') {
+      this.setSessionToken(response.data?.token!)
+    }
+    return response;
+  }
 
   get = async <D extends unknown>(url: string, data?: any): Promise<axiosResponse<D>> => {
     return await this.callAxios<D>('GET', url, data);
@@ -60,6 +72,10 @@ class Axios {
 
   put = async <D extends unknown>(url: string, data?: any): Promise<axiosResponse<D>> => {
     return await this.callAxios<D>('PUT', url, data);
+  };
+
+  post = async <D extends unknown>(url: string, data?: any, config?: AxiosRequestConfig): Promise<axiosResponse<D>> => {
+    return await this.callAxios<D>('POST', url, data);
   };
 }
 

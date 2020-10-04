@@ -10,22 +10,21 @@ import { Backdrop, CircularProgress, CssBaseline } from '@material-ui/core';
 
 @observer
 export default class App extends React.Component {
-  @observable
-  store = storeModel.create({ ui: { username: 'user9' } });
+	@observable store = storeModel.create({ ui: {} });
 
-  render() {
-    return (
-      <StoreContext.Provider value={this.store}>
-        <CssBaseline />
-        <Layout>
-          <Router />
-        </Layout>
-        {this.store.ui.showSpinner && (
-          <Backdrop open={true} style={{ zIndex: 'unset' }}>
-            <CircularProgress color="inherit" />
-          </Backdrop>
-        )}
-      </StoreContext.Provider>
-    );
-  }
+	render() {
+		return (
+			<StoreContext.Provider value={this.store}>
+				<CssBaseline />
+				<Layout>
+					<Router />
+				</Layout>
+				{this.store.ui.showSpinner && (
+					<Backdrop open={true} style={{ zIndex: 'unset' }}>
+						<CircularProgress color="inherit" />
+					</Backdrop>
+				)}
+			</StoreContext.Provider>
+		);
+	}
 }
