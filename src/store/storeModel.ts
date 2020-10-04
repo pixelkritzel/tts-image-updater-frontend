@@ -5,41 +5,95 @@ import { axios, axiosResponse } from 'utils/axios';
 
 import { uiModel } from './uiModel';
 import { SIuser, userModel } from './userModel';
+import { AxiosRequestConfig, Method } from 'axios';
 
 export const storeModel = types
-	.model('store', {
-		ui: uiModel,
-		user: types.maybe(userModel),
-	})
-	.actions((self) => ({
-		loadUser: flow(function*() {
-			if (self.ui.username) {
-				const response: axiosResponse<SIuser> = yield axios.get(`users/${self.ui.username}`);
-				if (response.type === 'SUCCESS') {
-					self.user = userModel.create(response.data);
-				} else {
-					self.ui.error = response.message;
-				}
-			}
-		}),
-	}))
-	.actions((self) => ({
-		async afterCreate() {
-			axios.setSpinner = (isAxiosActive: boolean) => self.ui.set('isAxiosActive', isAxiosActive);
-			const savedData = await localforage.getItem<{ sessionToken: string; username: string }>(
-				'tts-image-updater-frontend',
-			);
-			if (savedData) {
-				self.ui.set('username', savedData.username);
-				self.ui.set('sessionToken', savedData.sessionToken);
-				axios.setSessionToken(savedData.sessionToken);
-			}
-			if (self.ui.username) {
-				await self.loadUser();
-			}
-			self.ui.set('isStoreReady', true);
-		},
-	}));
+  .model('store', {
+    ui: uiModel,
+    user: types.maybe(userModel),
+  })
+  .actions((self) => {
+    const _axiosCall = flow(function* <D extends unknown>(
+      method: Method,
+      url: string,
+      data?: any,
+      config?: AxiosRequestConfig
+    ) {
+      self.ui.set('isAxiosActive', true);
+      const response: axiosResponse<D> = yield axios.callAxios(method, url, data, config);
+      self.ui.set('isAxiosActive', false);
+      if (response.type === 'SUCCESS') {
+        return response.data;
+      } else {
+        self.ui.error = {
+          message: response.message,
+          statusCode: response.statusCode,
+        };
+        throw self.ui.error;
+      }
+    });
+
+    return {
+      get: async function <D extends unknown>(
+        url: string,
+        data?: any,
+        options?: AxiosRequestConfig
+      ) {
+        return (await _axiosCall('GET', url, data, options)) as D;
+      },
+      post: async function <D extends unknown>(
+        url: string,
+        data?: any,
+        options?: AxiosRequestConfig
+      ) {
+        return (await _axiosCall('POST', url, data, options)) as D;
+      },
+      put: async function <D extends unknown>(
+        url: string,
+        data?: any,
+        options?: AxiosRequestConfig
+      ) {
+        return (await _axiosCall('PUT', url, data, options)) as D;
+      },
+    };
+  })
+  .actions((self) => ({
+    loadUser: flow(function* () {
+      if (self.ui.username) {
+        const user: SIuser = yield self.get(`users/${self.ui.username}`);
+        self.user = userModel.create(user);
+      }
+    }),
+    login: flow(function* (username: string, password: string) {
+      const response: axiosResponse<{ token: string }> = yield axios.callAxios<{ token: string }>(
+        'POST',
+        '/login',
+        { username, password }
+      );
+      if (response.type === 'SUCCESS') {
+        axios.setSessionToken(response.data!.token);
+        self.ui.set('username', username);
+        self.ui.set('sessionToken', response.data?.token);
+      }
+      return response;
+    }),
+  }))
+  .actions((self) => ({
+    async afterCreate() {
+      const savedData = await localforage.getItem<{ sessionToken: string; username: string }>(
+        'tts-image-updater-frontend'
+      );
+      if (savedData) {
+        self.ui.set('username', savedData.username);
+        self.ui.set('sessionToken', savedData.sessionToken);
+        axios.setSessionToken(savedData.sessionToken);
+      }
+      if (self.ui.username) {
+        await self.loadUser();
+      }
+      self.ui.set('isStoreReady', true);
+    },
+  }));
 
 export interface Istore extends Instance<typeof storeModel> {}
 export interface SIstore extends SnapshotIn<typeof storeModel> {}

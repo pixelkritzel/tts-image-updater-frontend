@@ -1,5 +1,3 @@
-import { Iuser } from './userModel';
-import { axios, axiosResponse } from 'utils/axios';
 import {
   SnapshotIn,
   types,
@@ -10,8 +8,10 @@ import {
   applySnapshot,
   getRoot,
 } from 'mobx-state-tree';
-import { Istore } from './storeModel';
 import { flow } from 'mobx';
+
+import { Istore } from './storeModel';
+import { Iuser } from './userModel';
 
 const imageModel = types
   .model({
@@ -73,17 +73,18 @@ export const imageSetModel = types
       return selectedImage;
     },
   }))
-  .actions((self) => ({
-    addImages: flow(function* (imagesData: FormData) {
+  .actions((self) => {
+    const addImages = flow<void, [FormData]>(function* (imagesData: FormData) {
       const { name } = getParent(self, 2);
-      const response: axiosResponse<any> = yield axios.postImage(
-        `users/${name}/image-sets/${self.id}/images`,
-        imagesData
-      );
-      if (response.type === 'SUCCESS') {
-        applySnapshot(self, response.data);
-      }
-    }),
+      const { post } = getRoot(self);
+      const response = yield post(`users/${name}/image-sets/${self.id}/images`, imagesData, {
+        headers: { 'content-type': 'multipart/form-data' },
+      });
+      applySnapshot(self, response);
+    });
+    return { addImages };
+  })
+  .actions((self) => ({
     deleteImage(id: Iimage['id']) {
       self.images.delete(id);
     },
@@ -95,22 +96,21 @@ export const imageSetModel = types
     update(snapshot: any) {
       try {
         applySnapshot(self, snapshot);
-      } catch (e) {}
+      } catch (e) {
+        const { ui } = getRoot(self) as Istore;
+        ui.set('error', { message: e });
+      }
     },
   }))
   .actions((self) => {
     const disposers: IDisposer[] = [];
     function afterCreate() {
       const { name } = getParent(self, 2) as Iuser;
+      const { put } = getRoot(self) as Istore;
       disposers.push(
         onPatch(self, async (patch) => {
-          const response = await axios.put(`users/${name}/image-sets/${self.id}`, patch);
-          if (response.type === 'SUCCESS') {
-            self.update(response.data);
-          } else {
-            const store = getRoot(self) as Istore;
-            store.ui.set('error', response.message);
-          }
+          const patchFromServer = await put(`users/${name}/image-sets/${self.id}`, patch);
+          self.update(patchFromServer);
         })
       );
     }

@@ -14,7 +14,7 @@ import {
   IconButton,
   styled,
 } from '@material-ui/core';
-import { Delete, Edit } from '@material-ui/icons';
+import { Delete } from '@material-ui/icons';
 import { observable } from 'mobx';
 
 interface ImagePreviewProps extends React.HTMLAttributes<HTMLDivElement> {
