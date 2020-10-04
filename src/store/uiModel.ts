@@ -15,6 +15,9 @@ export const uiModel = types
     isStoreReady: false,
   })
   .views((self) => ({
+    get isLoggedIn() {
+      return !!self.sessionToken;
+    },
     get showSpinner() {
       return self.isAxiosActive || !self.isStoreReady;
     },

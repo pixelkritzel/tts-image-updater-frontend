@@ -1,8 +1,12 @@
 import React from 'react';
 import { observer } from 'mobx-react';
-import { Box, Container, Typography } from '@material-ui/core';
+import { Box, Container, styled, Typography } from '@material-ui/core';
+import { Navigation } from 'components/Navigation';
+import { BrowserRouter } from 'react-router-dom';
 
-interface LayoutProps {}
+const StyledBox = styled(Box)({
+  marginTop: '88px',
+});
 
 @observer
 export class Layout extends React.Component {
@@ -10,7 +14,10 @@ export class Layout extends React.Component {
     return (
       <Container>
         <Typography component="div">
-          <Box>{this.props.children}</Box>
+          <BrowserRouter>
+            <Navigation />
+            <StyledBox>{this.props.children}</StyledBox>
+          </BrowserRouter>
         </Typography>
       </Container>
     );

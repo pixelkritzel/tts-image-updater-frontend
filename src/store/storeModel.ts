@@ -41,6 +41,13 @@ export const storeModel = types
       ) {
         return (await _axiosCall('GET', url, data, options)) as D;
       },
+      delete: async function <D extends unknown>(
+        url: string,
+        data?: any,
+        options?: AxiosRequestConfig
+      ) {
+        return await _axiosCall('DELETE', url, data, options);
+      },
       post: async function <D extends unknown>(
         url: string,
         data?: any,
@@ -76,6 +83,11 @@ export const storeModel = types
         self.ui.set('sessionToken', response.data?.token);
       }
       return response;
+    }),
+    logout: flow(function* () {
+      yield self.delete('/logout');
+      self.ui.set('sessionToken', undefined);
+      self.ui.set('username', undefined);
     }),
   }))
   .actions((self) => ({
