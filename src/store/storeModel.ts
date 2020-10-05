@@ -1,11 +1,11 @@
 import { flow, Instance, SnapshotIn, types } from 'mobx-state-tree';
+import { AxiosRequestConfig, Method } from 'axios';
 import localforage from 'localforage';
 
 import { axios, axiosResponse } from 'utils/axios';
 
 import { uiModel } from './uiModel';
 import { SIuser, userModel } from './userModel';
-import { AxiosRequestConfig, Method } from 'axios';
 
 export const storeModel = types
   .model('store', {
@@ -64,32 +64,38 @@ export const storeModel = types
       },
     };
   })
-  .actions((self) => ({
-    loadUser: flow(function* () {
-      if (self.ui.username) {
-        const user: SIuser = yield self.get(`users/${self.ui.username}`);
-        self.user = userModel.create(user);
-      }
-    }),
-    login: flow(function* (username: string, password: string) {
-      const response: axiosResponse<{ token: string }> = yield axios.callAxios<{ token: string }>(
-        'POST',
-        '/login',
-        { username, password }
-      );
-      if (response.type === 'SUCCESS') {
-        axios.setSessionToken(response.data!.token);
-        self.ui.set('username', username);
-        self.ui.set('sessionToken', response.data?.token);
-      }
-      return response;
-    }),
-    logout: flow(function* () {
-      yield self.delete('/logout');
-      self.ui.set('sessionToken', undefined);
-      self.ui.set('username', undefined);
-    }),
-  }))
+  .actions((self) => {
+    function unloadUser() {
+      self.user = undefined;
+    }
+    return {
+      loadUser: flow(function* () {
+        if (self.ui.username) {
+          const user: SIuser = yield self.get(`users/${self.ui.username}`);
+          self.user = userModel.create(user);
+        }
+      }),
+      login: flow(function* (username: string, password: string) {
+        const response: axiosResponse<{ token: string }> = yield axios.callAxios<{ token: string }>(
+          'POST',
+          '/login',
+          { username, password }
+        );
+        if (response.type === 'SUCCESS') {
+          axios.setSessionToken(response.data!.token);
+          self.ui.set('username', username);
+          self.ui.set('sessionToken', response.data?.token);
+        }
+        return response;
+      }),
+      logout: flow(function* () {
+        yield self.delete('/logout');
+        self.ui.set('sessionToken', undefined);
+        self.ui.set('username', undefined);
+        unloadUser();
+      }),
+    };
+  })
   .actions((self) => ({
     async afterCreate() {
       const savedData = await localforage.getItem<{ sessionToken: string; username: string }>(
