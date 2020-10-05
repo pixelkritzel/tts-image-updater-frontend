@@ -4,7 +4,7 @@ import { imageSetModel, SIimageSet } from './imageSetModel';
 
 export const userModel = types
   .model('user', {
-    name: types.string,
+    name: types.identifier,
     imageSets: types.map(imageSetModel),
   })
   .views((self) => ({
@@ -13,6 +13,11 @@ export const userModel = types
     },
   }))
   .actions((self) => ({
+    deleteImageSet: flow(function* (id: string) {
+      const { delete: deleteFn } = getRoot(self);
+      yield deleteFn(`/users/${self.name}/image-sets/${id}`);
+      self.imageSets.delete(id);
+    }),
     newImageSet: flow<string, []>(function* () {
       const { post } = getRoot(self);
       const imageSet: SIimageSet = yield post(`users/${self.name}/image-sets`);

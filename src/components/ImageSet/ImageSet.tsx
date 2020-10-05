@@ -11,6 +11,7 @@ import { ResponsiveImage } from 'components/ResponsiveImage';
 import { FileDropZone } from 'components/FileDropZone';
 import { DropZoneUi } from 'components/DropZoneUi';
 import { ImagePreview } from './ImagePreview';
+import { DeleteImageSet } from 'components/DeleteImageSet';
 
 interface ImageSetProps extends RouteComponentProps<{ imageSetId: string }> {}
 
@@ -124,6 +125,7 @@ export class ImageSet extends React.Component<ImageSetProps> {
                       setSelectedImage={this.imageSet!.setSelectedImage}
                     />
                   ))}
+                  <DeleteImageSet imageSet={imageSet} />
                 </SideBar>
               )}
             </Observer>
