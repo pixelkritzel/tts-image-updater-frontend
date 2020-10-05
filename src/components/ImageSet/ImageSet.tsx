@@ -30,11 +30,12 @@ const Main = styled('div')({
 const SideBar = styled('div')({
   alignSelf: 'stretch',
   overflowY: 'scroll',
+  textAlign: 'center',
   '& > *': {
     position: 'relative',
     paddingBottom: '12px',
 
-    '&:after': {
+    '&:not(:last-child):after': {
       content: '""',
       position: 'absolute',
       left: '5%',
