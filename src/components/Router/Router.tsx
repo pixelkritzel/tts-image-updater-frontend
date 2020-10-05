@@ -7,6 +7,7 @@ import { Home } from 'components/Home';
 import { ImageSet } from 'components/ImageSet';
 import { Login } from 'components/Login';
 import { StoreContext } from 'components/StoreContext';
+import { SignUp } from 'components/SignUp';
 
 interface RouterProps extends RouteComponentProps {}
 
@@ -35,6 +36,9 @@ class RouterComponent extends React.Component<RouterProps> {
       <Switch>
         <Route path="/login">
           <Login />
+        </Route>
+        <Route path="/signup">
+          <SignUp />
         </Route>
         <Route path="/image-sets/:imageSetId" component={ImageSet}></Route>
         <Route path="/">{this.context.user ? <Home /> : <Login />}</Route>

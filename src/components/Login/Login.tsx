@@ -1,7 +1,7 @@
 import React from 'react';
 import { computed, observable } from 'mobx';
 import { observer } from 'mobx-react';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { Button, styled, TextField } from '@material-ui/core';
 
@@ -60,6 +60,9 @@ class LoginComponent extends React.Component<RouteComponentProps> {
         <Button type="submit" disabled={!this.isSubmittable}>
           Login
         </Button>
+        <div>
+          or got to <Link to="/signup">SignUp</Link>
+        </div>
       </Form>
     );
   }
