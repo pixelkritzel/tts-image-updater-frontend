@@ -40,7 +40,7 @@ const StyledButton = styled(Button)({
   fontSize: 0,
 });
 
-const DeleteDialog: React.FC<{ id: string; onCancel: () => void; onDelete: () => void }> = ({
+const DeleteDialog: React.FC<{ id: number; onCancel: () => void; onDelete: () => void }> = ({
   id,
   onCancel,
   onDelete,

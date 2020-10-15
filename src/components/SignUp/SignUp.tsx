@@ -1,11 +1,12 @@
 import React from 'react';
 import { computed, observable } from 'mobx';
 import { observer } from 'mobx-react';
-import { Link } from 'react-router-dom';
+import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { Button, styled, TextField } from '@material-ui/core';
 
 import { StoreContext } from 'components/StoreContext';
+import { axiosResponse } from 'utils/axios';
 
 const Form = styled('form')({
   display: 'flex',
@@ -19,7 +20,7 @@ const Form = styled('form')({
 });
 
 @observer
-export class SignUp extends React.Component {
+export class SignUpComponent extends React.Component<RouteComponentProps> {
   static contextType = StoreContext;
   context!: React.ContextType<typeof StoreContext>;
 
@@ -43,7 +44,17 @@ export class SignUp extends React.Component {
 
   onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    this.context.post('/signup', { username: this.username, password: this.password });
+    const signUpResponse: axiosResponse<any> = await this.context.post('/signup', {
+      username: this.username,
+      password: this.password,
+    });
+    if (signUpResponse.type === 'SUCCESS') {
+      const loginResponse = await this.context.login(this.username, this.password);
+      if (loginResponse.type === 'SUCCESS') {
+        await this.context.loadUser();
+        this.props.history.push('/');
+      }
+    }
   };
 
   render() {
@@ -70,3 +81,5 @@ export class SignUp extends React.Component {
     );
   }
 }
+
+export const SignUp = withRouter(SignUpComponent);

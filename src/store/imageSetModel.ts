@@ -2,27 +2,22 @@ import {
   SnapshotIn,
   types,
   Instance,
-  IDisposer,
-  onPatch,
   getParent,
   applySnapshot,
   getRoot,
 } from 'mobx-state-tree';
 import { flow } from 'mobx';
 
-import { Istore } from './storeModel';
-import { Iuser } from './userModel';
-
 const imageModel = types
   .model({
-    id: types.identifier,
+    id: types.identifierNumber,
     url: types.string,
     name: types.optional(types.string, ''),
   })
   .views((self) => ({
     get isSelected() {
-      const imageSet = getParent(self, 2) as { selectedImage: { id: string } };
-      return imageSet.selectedImage.id === self.id;
+      const imageSet = getParent(self, 2) as { selectedImage?: { id: number } };
+      return imageSet.selectedImage?.id === self.id;
     },
   }))
   .actions((self) => ({
@@ -39,38 +34,31 @@ const imageModelMap = types.map(imageModel);
 
 export const imageSetModel = types
   .model({
-    id: types.identifier,
+    id: types.identifierNumber,
     name: types.optional(types.string, ''),
-    images: types.snapshotProcessor(
-      imageModelMap,
-      {
-        preProcessor(sn: SIimageModel[]) {
-          return sn.reduce((accu, curr) => {
-            accu[curr.id] = curr;
-            return accu;
-          }, {} as { [key: string]: SIimageModel });
+    images: types.optional(
+      types.snapshotProcessor(
+        imageModelMap,
+        {
+          preProcessor(sn: SIimageModel[]) {
+            return sn.reduce((accu, curr) => {
+              accu[curr.id] = curr;
+              return accu;
+            }, {} as { [key: string]: SIimageModel });
+          },
+          postProcessor(sn): SIimageModel[] {
+            return Object.values(sn);
+          },
         },
-        postProcessor(sn): SIimageModel[] {
-          return Object.values(sn);
-        },
-      },
-      'images in ImageSet'
+        'images in ImageSet'
+      ),
+      []
     ),
-    defaultImageId: types.optional(types.string, ''),
-    selectedImageId: types.optional(types.string, ''),
+    selectedImage: types.maybeNull(types.reference(imageModel))
   })
   .views((self) => ({
     get imagesAsArray() {
       return [...self.images.values()];
-    },
-    get selectedImage() {
-      const selectedImage = self.selectedImageId
-        ? self.images.get(self.selectedImageId)
-        : self.images.get(self.defaultImageId);
-      if (!selectedImage) {
-        return null;
-      }
-      return selectedImage;
     },
   }))
   .actions((self) => {
@@ -86,41 +74,17 @@ export const imageSetModel = types
   })
   .actions((self) => ({
     deleteImage(id: Iimage['id']) {
-      self.images.delete(id);
+      self.images.delete(id.toString());
     },
 
-    setSelectedImage(image: Iimage) {
-      self.selectedImageId = image.id;
-    },
-
-    update(snapshot: any) {
-      try {
-        applySnapshot(self, snapshot);
-      } catch (e) {
-        const { ui } = getRoot(self) as Istore;
-        ui.set('error', { message: e });
-      }
-    },
-  }))
-  .actions((self) => {
-    const disposers: IDisposer[] = [];
-    function afterCreate() {
-      const { name } = getParent(self, 2) as Iuser;
-      const { put } = getRoot(self) as Istore;
-      disposers.push(
-        onPatch(self, async (patch) => {
-          const patchFromServer = await put(`users/${name}/image-sets/${self.id}`, patch);
-          self.update(patchFromServer);
-        })
-      );
-    }
-
-    function beforeDestroy() {
-      disposers.forEach((disposer) => disposer());
-    }
-
-    return { afterCreate, beforeDestroy };
-  });
+    setSelectedImage: flow(function* (image: Iimage) {
+      self.selectedImage = image;
+      const { name } = getParent(self, 2);
+      const { put } = getRoot(self);
+      const patchFromServer = yield put(`users/${name}/image-sets/${self.id}`, self);
+      applySnapshot(self, patchFromServer);
+    }),
+  }));
 
 export type IimageSet = Instance<typeof imageSetModel>;
 export type SIimageSet = SnapshotIn<typeof imageSetModel>;

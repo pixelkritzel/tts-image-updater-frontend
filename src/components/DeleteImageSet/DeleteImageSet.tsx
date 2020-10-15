@@ -18,7 +18,7 @@ interface DeleteImageSetProps extends RouteComponentProps {
   imageSet: IimageSet;
 }
 
-const DeleteDialog: React.FC<{ id: string; onCancel: () => void; onDelete: () => void }> = ({
+const DeleteDialog: React.FC<{ id: number; onCancel: () => void; onDelete: () => void }> = ({
   id,
   onCancel,
   onDelete,
@@ -54,9 +54,9 @@ class DeleteImageSetComponent extends React.Component<DeleteImageSetProps> {
   isDeleteShown = false;
 
   onDelete = async () => {
-    await this.context.user!.deleteImageSet(this.props.imageSet.id);
     this.isDeleteShown = false;
     this.props.history.replace('/');
+    await this.context.user!.deleteImageSet(this.props.imageSet.id);
   };
 
   render() {

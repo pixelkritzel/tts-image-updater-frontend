@@ -4,6 +4,7 @@ import { observer } from 'mobx-react';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { Button, styled, TextField } from '@material-ui/core';
+import Alert from '@material-ui/lab/Alert';
 
 import { StoreContext } from 'components/StoreContext';
 
@@ -29,6 +30,9 @@ class LoginComponent extends React.Component<RouteComponentProps> {
   @observable
   password = '';
 
+  @observable
+  isCredentialsRejected = false;
+
   @computed
   get isSubmittable() {
     return this.username.length > 2 && this.password.length > 7;
@@ -40,12 +44,15 @@ class LoginComponent extends React.Component<RouteComponentProps> {
     if (response.type === 'SUCCESS') {
       await this.context.loadUser();
       this.props.history.push('/');
+    } else {
+      this.isCredentialsRejected = true;
     }
   };
 
   render() {
     return (
       <Form onSubmit={this.onSubmit}>
+        {this.isCredentialsRejected && <Alert severity="error">Credentials were rejected!</Alert>}
         <TextField
           label="User name"
           value={this.username}

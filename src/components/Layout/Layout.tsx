@@ -3,6 +3,7 @@ import { observer } from 'mobx-react';
 import { Box, Container, styled, Typography } from '@material-ui/core';
 import { Navigation } from 'components/Navigation';
 import { BrowserRouter } from 'react-router-dom';
+import { ErrorBoundary } from 'components/ErrorBoundary';
 
 const StyledBox = styled(Box)({
   marginTop: '88px',
@@ -15,8 +16,10 @@ export class Layout extends React.Component {
       <Container>
         <Typography component="div">
           <BrowserRouter>
-            <Navigation />
-            <StyledBox>{this.props.children}</StyledBox>
+            <ErrorBoundary>
+              <Navigation />
+              <StyledBox>{this.props.children}</StyledBox>
+            </ErrorBoundary>
           </BrowserRouter>
         </Typography>
       </Container>

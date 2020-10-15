@@ -107,11 +107,14 @@ export const storeModel = types
         axios.setSessionToken(savedData.sessionToken);
       }
       if (self.ui.username) {
-        await self.loadUser();
+        try {
+          await self.loadUser();
+        } catch (e) {
+        }
       }
       self.ui.set('isStoreReady', true);
     },
   }));
 
-export interface Istore extends Instance<typeof storeModel> {}
-export interface SIstore extends SnapshotIn<typeof storeModel> {}
+export interface Istore extends Instance<typeof storeModel> { }
+export interface SIstore extends SnapshotIn<typeof storeModel> { }
